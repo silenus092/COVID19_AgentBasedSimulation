@@ -14,13 +14,13 @@ class Status(Enum):
     Infected = 'i'
     Recovered_Immune = 'c'
     Death = 'm'
-
+    Exposed = 'e' 
 
 class InfectionSeverity(Enum):
     """
     The Severity of the Infected agents
     """
-    Exposed = 'e'
+    #Exposed = 'e' #<-- already added
     Asymptomatic = 'a'
     Hospitalization = 'h'
     Severe = 'g'
@@ -50,6 +50,10 @@ class Agent(object):
         self.status = kwargs.get('status', Status.Susceptible)
         """The health status of the agent"""
         self.infected_status = InfectionSeverity.Asymptomatic
+        """incubation period"""
+        self.incubation_time = kwargs.get('incubation_time', 0) ### <--- Update  
+        
+        
         """The infection severity of the agent"""
         self.infected_time = kwargs.get('infected_time', 0)
         """The time (in days) after the infection"""
@@ -62,6 +66,7 @@ class Agent(object):
         self.type = AgentType.Person
         """The type of the agent"""
         self.environment = kwargs.get('environment', None)
+    
 
     def get_description(self):
         """

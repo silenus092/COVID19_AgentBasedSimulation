@@ -34,21 +34,28 @@ def color1(s):
         return 'orange'
     elif s == 'Severe':
         return 'red'
+    elif s == 'Exposed':  # <--Update
+        return 'pink'
     else:
         return 'white'
+    
 
 
 def color2(agent):
     """Plotting colors by Status and InfectionSeverity"""
     if agent.status == Status.Susceptible:
         return 'blue'
+    if agent.status == Status.Exposed:
+        return 'pink'
     elif agent.status == Status.Infected:
         if agent.infected_status == InfectionSeverity.Asymptomatic:
             return 'darkgray'
         elif agent.infected_status == InfectionSeverity.Hospitalization:
             return 'orange'
+       # elif agent.infected_status == InfectionSeverity.Exposed: # <--Update
+       #     return 'pink'
         else:
-            return 'red'
+            return 'red'# <--Severe
     elif agent.status == Status.Recovered_Immune:
         return 'green'
     elif agent.status == Status.Death:
@@ -313,11 +320,11 @@ def execute_graphsimulation(sim, **kwargs):
     linhas1 = {}
 
     ax[1].axhline(y=sim.critical_limit, c="black", ls='--', label='Critical limit')
-
+            #### -- update start---- ###
     for col in df1.columns.values:
         if col != 'Asymptomatic':
             linhas1[col], = ax[1].plot(df1.index.values, df1[col].values, c=color1(col), label=col)
-
+         #### -- Update end ---- ###
     ax[1].set_xlabel("Nº of Days")
     ax[1].set_ylabel("% of Population")
 

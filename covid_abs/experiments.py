@@ -23,7 +23,7 @@ def plot_mean_std(ax, mean, std, legend, color=None):
     ax.plot(mean, color, label=legend)
 
 
-def plot_batch_results(df, health_metrics=('Susceptible', 'Infected', 'Hospitalization', 'Severe', 'Recovered_Immune', 'Death'),
+def plot_batch_results(df, health_metrics=('Susceptible','Exposed', 'Infected', 'Hospitalization', 'Severe', 'Recovered_Immune', 'Death'),
                        ecom_metrics=('Q1', 'Q2', 'Q3', 'Q4', 'Q5')):
     """
     Plot the results of a batch executions contained in the given DataFrame
@@ -80,7 +80,7 @@ def plot_batch_results(df, health_metrics=('Susceptible', 'Infected', 'Hospitali
     lgd = ax[1].legend(handles, labels, loc='top left')
 
 
-def plot_graph_batch_results(df, health_metrics=('Susceptible', 'Infected', 'Hospitalization', 'Severe', 'Recovered_Immune', 'Death'),
+def plot_graph_batch_results(df, health_metrics=('Susceptible', 'Exposed','Infected', 'Hospitalization', 'Severe', 'Recovered_Immune', 'Death'),
                        ecom_metrics=('Q1', 'Q2', 'Q3', 'Q4', 'Q5','Business','Government'), **kwargs):
     """
     Plot the results of a batch executions contained in the given DataFrame

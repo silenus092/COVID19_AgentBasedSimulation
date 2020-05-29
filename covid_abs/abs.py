@@ -20,6 +20,23 @@ class Simulation(object):
         '''The length of the shared environment'''
         self.height = kwargs.get("height", 10)
         '''The height of the shared environment'''
+        #### update ####
+      
+        self.initial_exposed_perc = kwargs.get("initial_exposed_perc", 0)
+        '''The height of the shared environment'''
+        self.incubation_period = kwargs.get("incubation_period", 14)
+        '''The incubation period'''
+        
+        self.age_hospitalization_probs = kwargs.get("age_hospitalization_probs", age_hospitalization_probs)
+        '''The age hospitalization probability'''
+        self.age_severe_probs = kwargs.get("age_severe_probs", age_severe_probs)
+        '''The age severe probability'''
+        self.age_death_probs= kwargs.get("age_death_probs", age_death_probs)
+        '''The age death probability'''
+        
+        
+        
+        #### end #####
         self.initial_infected_perc = kwargs.get("initial_infected_perc", 0.05)
         '''The initial percent of population which starts the simulation with the status Infected'''
         self.initial_immune_perc = kwargs.get("initial_immune_perc", 0.05)
@@ -33,7 +50,8 @@ class Simulation(object):
         self.amplitudes = kwargs.get('amplitudes',
                                      {Status.Susceptible: 5,
                                       Status.Recovered_Immune: 5,
-                                      Status.Infected: 5})
+                                      Status.Infected: 5,
+                                      Status.Exposed: 5})  #< ------- Update Here
         '''A dictionary with the average mobility of agents inside the shared environment for each status'''
         self.minimum_income = kwargs.get("minimum_income", 1.0)
         '''The base (or minimum) daily income, related to the most poor wealth quintile'''
@@ -117,7 +135,11 @@ class Simulation(object):
         """
         Initializate the Simulation by creating its population of agents
         """
-
+          #### update ####
+        # Initial exposed population
+        for i in np.arange(0, int(self.population_size * self.initial_exposed_perc)):
+            self.create_agent(Status.Exposed)
+             #### end #### 
         # Initial infected population
         for i in np.arange(0, int(self.population_size * self.initial_infected_perc)):
             self.create_agent(Status.Infected)
@@ -148,11 +170,17 @@ class Simulation(object):
 
         if agent1.status == Status.Susceptible and agent2.status == Status.Infected:
             contagion_test = np.random.random()
-            agent1.infection_status = InfectionSeverity.Exposed
+            #### - uPdate Start --###
+            #agent1.infection_status = InfectionSeverity.Exposed
+            agent1.status = Status.Exposed
+            
+            # maybe some one can show a symptom at first day
             if contagion_test <= self.contagion_rate:
                 agent1.status = Status.Infected
                 agent1.infection_status = InfectionSeverity.Asymptomatic
-
+                #agent1.infection_status = InfectionSeverity.Asymptomatic
+            #### - uPdate End --###
+            
     def move(self, agent, triggers=[]):
         """
         Performs the actions related with the movement of the agents in the shared environment
@@ -163,7 +191,8 @@ class Simulation(object):
 
         if agent.status == Status.Death or (agent.status == Status.Infected
                                             and (agent.infected_status == InfectionSeverity.Hospitalization
-                                                 or agent.infected_status == InfectionSeverity.Severe)):
+                                                 or agent.infected_status == InfectionSeverity.Severe
+                                                  )):
             return
 
         for trigger in triggers:
@@ -197,7 +226,15 @@ class Simulation(object):
 
         if agent.status == Status.Death:
             return
-
+          ### -- Update Here --###
+        if agent.status == Status.Exposed:
+            agent.incubation_time += 1
+            if agent.incubation_time > self.incubation_period:
+                agent.status = Status.Infected
+                agent.infected_status = InfectionSeverity.Asymptomatic
+             
+        
+          ### -- End Here --###
         if agent.status == Status.Infected:
             agent.infected_time += 1
 
@@ -205,11 +242,15 @@ class Simulation(object):
 
             teste_sub = np.random.random()
 
+            ### -- Update Here --###
+          #  if agent.infected_status == InfectionSeverity.Exposed:
+               # if age_exposed_probs[indice] > teste_sub:
+           #     agent.infected_status = InfectionSeverity.Asymptomatic 
             if agent.infected_status == InfectionSeverity.Asymptomatic:
-                if age_hospitalization_probs[indice] > teste_sub:
+                if self.age_hospitalization_probs[indice] > teste_sub:
                     agent.infected_status = InfectionSeverity.Hospitalization
             elif agent.infected_status == InfectionSeverity.Hospitalization:
-                if age_severe_probs[indice] > teste_sub:
+                if self.age_severe_probs[indice] > teste_sub:
                     agent.infected_status = InfectionSeverity.Severe
                     self.get_statistics()
                     if self.statistics['Severe'] + self.statistics['Hospitalization'] >= self.critical_limit:
@@ -217,11 +258,12 @@ class Simulation(object):
                         agent.infected_status = InfectionSeverity.Asymptomatic
 
             death_test = np.random.random()
-            if age_death_probs[indice] > death_test:
+            if self.age_death_probs[indice] > death_test:
                 agent.status = Status.Death
                 agent.infected_status = InfectionSeverity.Asymptomatic
                 return
 
+            
             if agent.infected_time > 20:
                 agent.infected_time = 0
                 agent.status = Status.Recovered_Immune
@@ -300,8 +342,9 @@ class Simulation(object):
             for status in Status:
                 self.statistics[status.name] = np.sum(
                     [1 for a in self.population if a.status == status]) / self.population_size
-
-            for infected_status in filter(lambda x: x != InfectionSeverity.Exposed, InfectionSeverity):
+            #### Update Here #####
+            # for infected_status in filter(lambda x: x != InfectionSeverity.Exposed, InfectionSeverity):
+            for infected_status in InfectionSeverity:
                 self.statistics[infected_status.name] = np.sum([1 for a in self.population if
                                                                 a.infected_status == infected_status and
                                                                 a.status != Status.Death]) / self.population_size
