@@ -6,11 +6,13 @@ from covid_abs.agents import Status, InfectionSeverity, Agent
 from covid_abs.common import *
 
 
+
 def distance(a, b):
     return np.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
 
-
 class Simulation(object):
+    
+     
     def __init__(self, **kwargs):
         self.population = []
         '''The population of agents'''
@@ -34,7 +36,8 @@ class Simulation(object):
         self.age_death_probs= kwargs.get("age_death_probs", age_death_probs)
         '''The age death probability'''
         
-        
+        self.iteration = 0
+
         
         #### end #####
         self.initial_infected_perc = kwargs.get("initial_infected_perc", 0.05)
@@ -135,7 +138,9 @@ class Simulation(object):
         """
         Initializate the Simulation by creating its population of agents
         """
+        
           #### update ####
+  
         # Initial exposed population
         for i in np.arange(0, int(self.population_size * self.initial_exposed_perc)):
             self.create_agent(Status.Exposed)
@@ -216,14 +221,22 @@ class Simulation(object):
         dist = np.sqrt(ix ** 2 + iy ** 2)
         result_ecom = np.random.rand(1)
         agent.wealth += dist * result_ecom * self.minimum_expense * basic_income[agent.social_stratum]
-
+        
+    def get_iteration(self):
+        """
+          Retun the current iteration
+        """
+       
+        return self.iteration / self.population_size
+            
+            
     def update(self, agent):
         """
         Update the status of the agent
 
         :param agent: an instance of agents.Agent
         """
-
+        self.iteration+=1 # keep tracking of iteration 
         if agent.status == Status.Death:
             return
           ### -- Update Here --###
@@ -276,6 +289,9 @@ class Simulation(object):
         Execute a complete iteration cycle of the Simulation, executing all actions for each agent
         in the population and updating the statistics
         """
+        
+        
+        
         mov_triggers = [k for k in self.triggers_population if k['attribute'] == 'move']
         other_triggers = [k for k in self.triggers_population if k['attribute'] != 'move']
 
@@ -453,6 +469,7 @@ class MultiPopulationSimulation(Simulation):
                                                    and a.status != Status.Death])
 
         return self.filter_stats(kind)
+    
 
     def __str__(self):
         return str(self.get_description())
